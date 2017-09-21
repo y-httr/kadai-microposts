@@ -9,4 +9,5 @@ Rails.application.routes.draw do
   get 'signup', to: 'users#new' #新規登録URLを/signupにするためだけに個別に設定
   resources :users, only: [:index, :show, :new, :create]
   
+  resources :microposts, only: [:create, :destroy]
 end
