@@ -35,5 +35,13 @@ class User < ApplicationRecord
     #followしているユーザを取得してその要素にother_userが含まれているか確認する
     self.followings.include?(other_user) 
   end
+  def feed_microposts
+    #Micropostモデルに対してuser_idで検索し投稿を取得
+    #following_idsはhas_many: followings, ...で自動生成されるメソッドこの場合自分がフォローしているユーザのidを配列で取得
+    #自分のidを配列型に変換して追加 +[self.id]
+    #whereは配列で指定することができる（複数条件の指定）
+    Micropost.where(user_id: self.following_ids + [self.id])
+  end
+  
 end
 
