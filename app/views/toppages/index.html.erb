@@ -10,6 +10,9 @@
         <%= f.submit 'Post', class: 'btn btn-primary btn-block' %>
       <% end %>
     </aside>
+    <div class="col-md-4">
+      <%= link_to "Access your favorites", myfavorites_url, class: "btn btn-info btn-block"%>
+    </div>
     <div class="col-md-8">
       <%= render 'microposts/microposts', microposts: @microposts %>
     </div>

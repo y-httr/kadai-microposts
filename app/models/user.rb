@@ -1,4 +1,5 @@
 class User < ApplicationRecord
+  
   before_save { self.email.downcase! }
   validates :name, presence: true, length: { maximum: 50 }
   validates :email, presence: true, length: { maximum: 255 },
@@ -12,12 +13,15 @@ class User < ApplicationRecord
   #sourceには，中間テーブルのカラムのどのIDを参照先とするかを指定
   has_many :relationships #UserとRelationshipは1対多
   has_many :followings, through: :relationships, source: :follow
-  
   #:reverses_of_relationshipなんて名前はないが,クラスを直接指定(:relationshipsと別の名前にするため)
   #Rails の命名規則により、User から Relationship を取得するとき、user_id(左側の値) にアクセスする
   #foreign_key: "follow_id"を指定するとfollow_id（右側の値）にアクセスした中間テーブルとなる
   has_many :reverses_of_relationship, class_name: "Relationship", foreign_key: "follow_id"
   has_many :followers, through: :reverses_of_relationship, source: :user
+  
+  #お気に入り機能
+  has_many :favorites
+  has_many :favorites_microposts, through: :favorites, source: :micropost 
   
   def follow(other_user)
     unless self == other_user #user.follow(other)を実行した時にuserインスタンスが入る
@@ -35,12 +39,31 @@ class User < ApplicationRecord
     #followしているユーザを取得してその要素にother_userが含まれているか確認する
     self.followings.include?(other_user) 
   end
+  
   def feed_microposts
     #Micropostモデルに対してuser_idで検索し投稿を取得
     #following_idsはhas_many: followings, ...で自動生成されるメソッドこの場合自分がフォローしているユーザのidを配列で取得
     #自分のidを配列型に変換して追加 +[self.id]
     #whereは配列で指定することができる（複数条件の指定）
     Micropost.where(user_id: self.following_ids + [self.id])
+  end
+  
+  
+  #お気に入りの登録(自分のものでなく，お気に入りしてなければ作る)
+  def favorite(micropost)
+    unless micropost.user == self
+      self.favorites.find_or_create_by(micropost_id: micropost.id)
+    end
+  end
+  #お気に入りの解除(あれば削除)
+  def unfavorite(micropost)
+    favorite = self.favorites.find_by(micropost_id: micropost.id)
+    favorite.destroy if favorite
+  end
+  
+  #投稿をお気に入りしているか判定する
+  def favorite?(micropost)
+    self.favorites_microposts.include?(micropost)  
   end
   
 end

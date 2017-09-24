@@ -1,5 +1,6 @@
 <ul class="media-list">
   <% microposts.each do |micropost| %>
+  <!--micropostsの中身は，コントローラーによって変えることができる-->
     <% user = micropost.user %>
     <li class="media">
       <div class="media-left">
@@ -15,6 +16,20 @@
         <div>
           <% if current_user == micropost.user %>
             <%= link_to "Delete", micropost, method: :delete, data: { confirm: "You sure?" }, class: 'btn btn-danger btn-xs' %>
+          <% elsif current_user.favorite?(micropost) %>
+            <%= form_for(current_user.favorites.find_by(micropost_id: micropost.id), html: { method: :delete }) do |f| %>
+              <%= hidden_field_tag :micropost_id, micropost.id %>
+              <%= button_tag(class: "btn btn-info btn-xs") do %>
+                <%= content_tag :span, "", class: "glyphicon glyphicon-star" %>
+              <% end %>
+            <% end %>
+          <% else %>
+            <%= form_for(current_user.favorites.build) do |f| %>
+              <%= hidden_field_tag :micropost_id, micropost.id %>
+              <%= button_tag(class: "btn btn-info btn-xs") do %>
+                <%= content_tag :span, "", class: "glyphicon glyphicon-star-empty" %>
+              <% end %>
+            <% end %>
           <% end %>
         </div>
       </div>
